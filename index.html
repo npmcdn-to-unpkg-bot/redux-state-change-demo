@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Redux basic example</title>
+    <script src="https://npmcdn.com/redux@latest/dist/redux.min.js"></script>
+  </head>
+  <body>
+    <div>
+      <p>
+        鸡肉：<span id="chicken">0</span>
+      </p>
+      <p>
+        羽毛：<span id="feather">0</span>
+      </p>
+      <p>
+        鸡蛋：<span id="egg">0</span>
+      </p>
+    </div>
+    <script>
+
+      const INI_STATE = {
+        incubator: {
+          hen: 100
+        },
+        feeder: {
+          cock: 0,
+          hen: 0
+        },
+        storage: {
+          egg: 0,
+          chicken: 0,
+          feather: 0
+        }
+      };
+
+      /* Action列表 */
+      const LAY_EGGS = 'LAY_EGGS';
+      const CHICKEN_GROW_UP = 'CHICKEN_GROW_UP';
+      const CHICKEN_GET_KILLED = 'CHICKEN_GET_KILLED';
+
+      /* Action创建函数 */
+      function layEggs(egg_num){
+        return {
+          type: LAY_EGGS,
+          egg_num: egg_num
+        }
+      }
+
+      function chickenGrowUp(egg_num){
+        return {
+          type: CHICKEN_GROW_UP,
+          egg_num: egg_num
+        }
+      }
+
+      function chickedGetKilled(feather_num){
+        return {
+          type: CHICKEN_GET_KILLED,
+          feather_num: feather_num
+        }
+      }
+
+
+      /* Reducers */
+      function factory(state = INI_STATE, action){
+        switch (action.type) {
+          case LAY_EGGS:
+            var newState = Object.assign({}, state);
+            var egg = newState.incubator.hen * action.egg_num;
+            var chicken = egg * 0.5;
+            egg -= chicken;
+            newState.storage.egg += egg;
+            newState.feeder.cock += chicken * 0.5;
+            newState.feeder.hen += chicken * 0.5;
+            return newState;
+          case CHICKEN_GROW_UP:
+            var newState = Object.assign({}, state);
+            var egg = newState.feeder.hen * action.egg_num;
+            newState.storage.egg += egg;
+            return newState;
+          case CHICKEN_GET_KILLED:
+            var newState = Object.assign({}, state);
+            var chicken = newState.feeder.hen + newState.feeder.cock;
+            newState.feeder.hen = newState.feeder.cock = 0;
+            newState.storage.chicken += chicken;
+            newState.storage.feather += chicken * action.feather_num;
+            return newState;
+          default:
+            return state;
+        }
+      }
+
+      let store = Redux.createStore(factory);
+      function render() {
+        document.getElementById('egg').textContent = store.getState().storage.egg.toString();
+        document.getElementById('chicken').textContent = store.getState().storage.chicken.toString();
+        document.getElementById('feather').textContent = store.getState().storage.feather.toString();
+      }
+      store.subscribe(render);
+      const TIMESLOT = 2 * 1000;
+      setInterval(() => {store.dispatch(layEggs(1))}, TIMESLOT);
+      setInterval(() => {store.dispatch(chickenGrowUp(1))}, TIMESLOT);
+      setInterval(() => {store.dispatch(chickedGetKilled(2))},TIMESLOT * 2);
+
+    </script>
+  </body>
+</html>
